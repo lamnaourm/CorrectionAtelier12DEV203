@@ -1,6 +1,7 @@
 const express = require("express");
 const ProductModel = require("../models/Product");
 const amqp = require("amqplib");
+const { json } = require("express");
 
 const routes = express.Router();
 
@@ -33,9 +34,12 @@ routes.post("/", (req, res) => {
 routes.post("/buy", (req, res) => {
     ProductModel.find({_id: {$in:req.body}}).then((products) => {
         channel.sendToQueue(queueName1, Buffer.from(JSON.stringify(products)));
+
+        channel.consume(queueName2, (data) => {
+          res.json({message:"order cree", order: JSON.parse(data.content.toString())})
+        })
     })
 
-    res.sendStatus(200);
 });
 
 module.exports = routes;

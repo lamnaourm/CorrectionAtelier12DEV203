@@ -31,7 +31,9 @@ connectToRabbitMQ().then(() => {
             total += item.price;
         })
         const order = new orderModel({products:listprods, total});
-        order.save();
+        order.save().then((ord)=> {
+          channel.sendToQueue(queueName2, Buffer.from(JSON.stringify(ord)))
+        });
 
         
         channel.ack(data);
