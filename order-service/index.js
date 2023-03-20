@@ -7,6 +7,7 @@ const app = express();
 let connection, channel;
 const queueName1 = "order-service-queue";
 const queueName2 = "product-service-queue";
+const queueName3 = "notification-service-queue";
 
 app.use(express.json());
 
@@ -21,6 +22,7 @@ async function connectToRabbitMQ() {
   channel = await connection.createChannel();
   await channel.assertQueue(queueName1);
   await channel.assertQueue(queueName2);
+  await channel.assertQueue(queueName3);
 }
 
 connectToRabbitMQ().then(() => {
@@ -33,6 +35,7 @@ connectToRabbitMQ().then(() => {
         const order = new orderModel({products:listprods, total});
         order.save().then((ord)=> {
           channel.sendToQueue(queueName2, Buffer.from(JSON.stringify(ord)))
+          channel.sendToQueue(queueName3, Buffer.from(JSON.stringify(ord)))
         });
 
         
